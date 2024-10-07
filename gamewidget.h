@@ -7,6 +7,23 @@
 #include <QKeyEvent>
 #include <QPainter>
 
+class Submarine {
+public:
+    QRect rect;
+
+    Submarine(int x, int y, int width, int height)
+        : rect(x, y, width, height) {}
+
+    void moveLeft() {
+        rect.moveLeft(rect.left() - 10);  // Двигаем влево
+    }
+
+    void moveRight() {
+        rect.moveLeft(rect.left() + 10);  // Двигаем вправо
+    }
+};
+
+
 class Ship {
 public:
     QRect rect;
@@ -53,9 +70,11 @@ private:
     QList<Ship> ships;
     QList<Torpedo> torpedoes;
     QTimer *timer;
+    Submarine submarine;  // Подводная лодка
     int score;
     int torpedoCount;
     int level;
 };
+
 
 #endif // GAMEWIDGET_H
