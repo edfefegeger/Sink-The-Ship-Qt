@@ -11,7 +11,7 @@ GameWidget::GameWidget(QWidget *parent)
     spawnShips();
 
     // Создаем кнопку "Играть снова", но она скрыта до конца игры
-    restartButton = new QPushButton("Играть снова", this);
+    restartButton = new QPushButton("try again!", this);
     restartButton->setGeometry(width() / 2 - 50, height() / 2 + 50, 100, 40);
     restartButton->hide();
     connect(restartButton, &QPushButton::clicked, this, &GameWidget::restartGame);
