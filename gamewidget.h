@@ -6,7 +6,7 @@
 #include <QList>
 #include <QKeyEvent>
 #include <QPainter>
-
+#include <QPushButton>
 class Submarine {
 public:
     QRect rect;
@@ -68,6 +68,7 @@ private slots:
     void updateGame();
     void checkCollisions();
     void spawnShips();
+    void restartGame();
 
 private:
     void checkLevel();  // Add this line to declare checkLevel()
@@ -79,6 +80,7 @@ private:
     int score;
     int torpedoCount;
     int level;
+    QPushButton *restartButton;  // Объявляем кнопку как член класса
 };
 
 #endif // GAMEWIDGET_H
