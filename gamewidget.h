@@ -69,19 +69,24 @@ private slots:
     void checkCollisions();
     void spawnShips();
     void restartGame();
-
+    void showTopResults();  // Новый слот для отображения топ-результатов
 
 private:
-    void checkLevel();  // Add this line to declare checkLevel()
+    void checkLevel();
+    void saveResult();  // Новый метод для сохранения результата
+    void loadTopResults();  // Новый метод для загрузки топ-результатов
 
     QList<Ship> ships;
     QList<Torpedo> torpedoes;
     QTimer *timer;
-    Submarine submarine;  // Подводная лодка
+    Submarine submarine;
     int score;
     int torpedoCount;
     int level;
-    QPushButton *restartButton;  // Объявляем кнопку как член класса
+    QPushButton *restartButton;
+    QPushButton *topResultsButton;  // Кнопка для показа топ-результатов
+
+    QVector<QPair<int, QString>> topResults;  // Хранение пар (счет, имя)
 };
 
 #endif // GAMEWIDGET_H

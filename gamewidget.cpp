@@ -1,6 +1,8 @@
 #include "gamewidget.h"
 #include <QPushButton>
 #include <QRandomGenerator>
+#include <QTextStream>
+#include <QMessageBox>
 
 GameWidget::GameWidget(QWidget *parent)
     : QWidget(parent), score(0), torpedoCount(10), level(1), submarine(width() / 2 - 25, height() - 50, 50, 20) {
@@ -15,6 +17,10 @@ GameWidget::GameWidget(QWidget *parent)
     restartButton->setGeometry(width() / 2 - 50, height() / 2 + 50, 100, 40);
     restartButton->hide();
     connect(restartButton, &QPushButton::clicked, this, &GameWidget::restartGame);
+    topResultsButton = new QPushButton("Top 10", this);
+    topResultsButton->hide();
+    // topResultsButton->setGeometry(10, 100, 150, 30);
+    connect(topResultsButton, &QPushButton::clicked, this, &GameWidget::showTopResults);
 }
 
 void GameWidget::paintEvent(QPaintEvent *) {
@@ -56,10 +62,11 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
     // Если игра завершена, показываем белый блок с результатами и кнопку
     if (torpedoCount == -1) {
+        saveResult();
         // Рисуем белый блок для вывода результатов
         painter.setBrush(Qt::white);
         painter.setPen(Qt::NoPen);
-        QRect resultRect(width() / 2 - 150, height() / 2 - 150, 300, 260);
+        QRect resultRect(width() / 2 - 150, height() / 2 - 150, 300, 320);
         painter.drawRect(resultRect);
 
         // Отрисовываем текст "Game Over" с увеличенным шрифтом
@@ -96,9 +103,30 @@ void GameWidget::paintEvent(QPaintEvent *) {
             "QPushButton:hover {"
             "background-color: #45a049;"    // Более темный зеленый при наведении
             "}"
-        );
 
+
+        );
+        topResultsButton->setGeometry(width() / 2 - 75, height() / 2 + 90, 150, 55);
+
+        topResultsButton->show();
+
+                topResultsButton->setStyleSheet(
+                    "QPushButton {"
+                    "background-color: black;"    // Черный фон
+                    "color: white;"                // Белый текст
+                    "border: none;"                // Без рамки
+                    "border-radius: 10px;"         // Скругленные углы
+                    "font-size: 16px;"             // Размер шрифта
+                    "font-weight: bold;"           // Жирный шрифт
+                    "padding: 10px 20px;"          // Внутренние отступы
+                    "}"
+                    "QPushButton:hover {"
+                    "background-color: #45a049;"    // Более темный зеленый при наведении
+                    "}"
+                            );
     }
+
+
 }
 
 void GameWidget::restartGame() {
@@ -119,6 +147,7 @@ void GameWidget::restartGame() {
 
     // Скрываем кнопку перезапуска и снова запускаем таймер
     restartButton->hide();
+    topResultsButton->hide();
     timer->start(30);
 
     // Обновляем отображение игры
@@ -247,3 +276,56 @@ void GameWidget::checkLevel() {
         torpedoCount = 10;
     }
 }
+
+void GameWidget::saveResult() {
+    QString playerName = "Player";  // Можно добавить ввод имени игрока
+    topResults.append(qMakePair(score, playerName));
+
+    // Сортировка по убыванию счета
+    std::sort(topResults.begin(), topResults.end(), [](const QPair<int, QString> &a, const QPair<int, QString> &b) {
+        return a.first > b.first;
+    });
+
+    // Сохраняем только топ-10
+    if (topResults.size() > 10) {
+        topResults.resize(10);
+    }
+
+    QFile file("top_results.txt");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        for (const auto &result : topResults) {
+            out << result.second << ":" << result.first << "\n";
+        }
+    }
+    file.close();
+}
+
+void GameWidget::loadTopResults() {
+    QFile file("highscores.txt");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            QStringList parts = line.split(":");
+            if (parts.size() == 2) {
+                QString name = parts[0];
+                int score = parts[1].toInt();
+                topResults.append(qMakePair(score, name));
+            }
+        }
+    }
+    file.close();
+}
+void GameWidget::showTopResults() {
+    loadTopResults();  // Загружаем результаты
+
+    QString resultText = "Top 10 Results:\n\n";
+    for (int i = 0; i < topResults.size(); ++i) {
+        resultText += QString("%1. %2 - %3\n").arg(i + 1).arg(topResults[i].second).arg(topResults[i].first);
+    }
+
+    QMessageBox::information(this, "Top 10", resultText);  // Показываем сообщение с результатами
+}
+
+
