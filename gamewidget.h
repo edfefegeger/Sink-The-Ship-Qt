@@ -15,14 +15,17 @@ public:
         : rect(x, y, width, height) {}
 
     void moveLeft() {
-        rect.moveLeft(rect.left() - 10);  // Двигаем влево
+        if (rect.left() > 0) {  // Проверяем левую границу
+            rect.moveLeft(rect.left() - 10);  // Двигаем влево
+        }
     }
 
-    void moveRight() {
-        rect.moveLeft(rect.left() + 10);  // Двигаем вправо
+    void moveRight(int screenWidth) {
+        if (rect.right() < screenWidth) {  // Проверяем правую границу
+            rect.moveLeft(rect.left() + 10);  // Двигаем вправо
+        }
     }
 };
-
 
 class Ship {
 public:
@@ -67,6 +70,8 @@ private slots:
     void spawnShips();
 
 private:
+    void checkLevel();  // Add this line to declare checkLevel()
+
     QList<Ship> ships;
     QList<Torpedo> torpedoes;
     QTimer *timer;
@@ -75,6 +80,5 @@ private:
     int torpedoCount;
     int level;
 };
-
 
 #endif // GAMEWIDGET_H

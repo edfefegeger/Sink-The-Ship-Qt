@@ -8,28 +8,34 @@ GameWidget::GameWidget(QWidget *parent)
     spawnShips();
 }
 
-
 void GameWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
 
-    // Рисуем подводную лодку
-    painter.drawRect(submarine.rect);
+    // Рисуем подводную лодку в виде треугольника
+    painter.setBrush(Qt::blue);  // Задаем цвет для подводной лодки
+    QPolygon submarineShape;
+    submarineShape << QPoint(submarine.rect.left(), submarine.rect.bottom())
+                   << QPoint(submarine.rect.right(), submarine.rect.bottom())
+                   << QPoint(submarine.rect.center().x(), submarine.rect.top());
+    painter.drawPolygon(submarineShape);
 
     // Рисуем корабли
     for (const Ship &ship : ships) {
+        painter.setBrush(Qt::green);  // Задаем цвет для кораблей
         painter.drawRect(ship.rect);
     }
 
     // Рисуем торпеды
     for (const Torpedo &torpedo : torpedoes) {
+        painter.setBrush(Qt::red);  // Задаем цвет для торпед
         painter.drawRect(torpedo.rect);
     }
 
-    // Отображаем счет и оставшиеся торпеды
+    // Отображаем счет, оставшиеся торпеды и уровень
     painter.drawText(10, 10, "Score: " + QString::number(score));
     painter.drawText(10, 30, "Torpedoes left: " + QString::number(torpedoCount));
+    painter.drawText(10, 50, "Level: " + QString::number(level));
 }
-
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Space && torpedoCount > 0) {
@@ -43,7 +49,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
         submarine.moveLeft();
     }
     if (event->key() == Qt::Key_Right) {
-        submarine.moveRight();
+        submarine.moveRight(this->width());  // Передаем ширину окна
     }
 }
 
@@ -65,14 +71,49 @@ void GameWidget::checkCollisions() {
                 score += ships[j].scoreValue;
                 ships.removeAt(j);
                 torpedoes.removeAt(i);
-                break;
+                spawnShips(); // Спавним новый корабль при уничтожении старого
+                checkLevel(); // Проверка уровня
+                return; // Выход из цикла, так как мы удалили торпеду
             }
+        }
+    }
+
+    // Удаляем корабли, которые вышли за границу экрана
+    for (int j = ships.size() - 1; j >= 0; --j) {
+        if (ships[j].rect.right() < 0) {
+            ships.removeAt(j);
+            spawnShips(); // Спавним новый корабль
         }
     }
 }
 
 void GameWidget::spawnShips() {
-    ships.append(Ship(width(), 50, 50, 20, 2, 3));
-    ships.append(Ship(width(), 100, 70, 20, 1, 2));
-    ships.append(Ship(width(), 150, 90, 20, 1, 1));
+    int randomY = qrand() % (height() - 100) + 50; // Случайное Y для нового корабля
+    ships.append(Ship(width(), randomY, 50, 20, 2 + level, 3)); // Добавляем новый корабль с увеличенной скоростью на более высоких уровнях
 }
+
+void GameWidget::checkLevel() {
+    int previousLevel = level;  // Store the current level before checking
+
+    // Update the level based on the score
+    if (score >= 40) {
+        level = 5; // Уровень 3 от 20 до 30 очков
+    }
+    else if (score >= 30) {
+        level = 4; // Уровень 2 от 10 до 20 очков
+        }
+    else if (score >= 20) {
+        level = 3; // Уровень 2 от 10 до 20 очков
+        }
+     else if (score >= 10) {
+        level = 2; // Уровень 2 от 10 до 20 очков
+    } else if (score >= 0) {
+        level = 1; // Уровень 1 от 0 до 10 очков
+    }
+
+    // Reset torpedoCount only when moving to a higher level
+    if (level > previousLevel) {
+        torpedoCount = 10;
+    }
+}
+
