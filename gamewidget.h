@@ -70,6 +70,7 @@ private slots:
     void spawnShips();
     void restartGame();
 
+
 private:
     void checkLevel();  // Add this line to declare checkLevel()
 

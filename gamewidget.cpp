@@ -1,5 +1,6 @@
 #include "gamewidget.h"
 #include <QPushButton>
+#include <QRandomGenerator>
 
 GameWidget::GameWidget(QWidget *parent)
     : QWidget(parent), score(0), torpedoCount(10), level(1), submarine(width() / 2 - 25, height() - 50, 50, 20) {
@@ -42,13 +43,19 @@ void GameWidget::paintEvent(QPaintEvent *) {
     painter.setFont(font);
 
     // Отображаем счет, оставшиеся торпеды и уровень с меньшими отступами
-    painter.drawText(10, 20, "Score: " + QString::number(score));
-    painter.drawText(10, 40, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
-    painter.drawText(10, 60, "Level: " + QString::number(level));  // Изменено на 40
+    painter.drawText(10, 25, "Score: " + QString::number(score));
+    if (torpedoCount == -1)
+       {
+    painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount + 1));  // Изменено на 25
+    }
+    else{
+        painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
+    }
+    painter.drawText(10, 65, "Level: " + QString::number(level));  // Изменено на 40
 
 
     // Если игра завершена, показываем белый блок с результатами и кнопку
-    if (torpedoCount == 0) {
+    if (torpedoCount == -1) {
         // Рисуем белый блок для вывода результатов
         painter.setBrush(Qt::white);
         painter.setPen(Qt::NoPen);
@@ -120,9 +127,12 @@ void GameWidget::restartGame() {
 
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
-    if (event->key() == Qt::Key_Space && torpedoCount > 0) {
+    if (event->key() == Qt::Key_Space && torpedoCount >= 0) {
         // Запускаем торпеду из центра подводной лодки
+        if (torpedoCount != 0){
         torpedoes.append(Torpedo(submarine.rect.center().x() - 2, submarine.rect.top() - 10, 5, 10, 5));
+        }
+
         torpedoCount--;
         update();  // Обновляем отображение после выстрела
     }
@@ -139,7 +149,7 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 void GameWidget::updateGame() {
-    if (torpedoCount == 0) {
+    if (torpedoCount < 0) {
         update();  // Обновляем экран, чтобы показать результат
         return;  // Останавливаем игру, если торпед больше нет
     }
@@ -178,7 +188,9 @@ void GameWidget::checkCollisions() {
 }
 
 void GameWidget::spawnShips() {
-    int randomY = qrand() % (height() - 100) + 50; // Случайное Y для нового корабля
+    QRandomGenerator *randomGen = QRandomGenerator::global();
+
+    int randomY = randomGen->bounded(height() - 100) + 50; // Случайное Y для нового корабля
 
     // Вероятность появления типа корабля в зависимости от уровня
     int randomType = qrand() % 100;
