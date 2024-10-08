@@ -21,7 +21,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
     // Рисуем корабли
     for (const Ship &ship : ships) {
-        painter.setBrush(Qt::green);  // Задаем цвет для кораблей
+        painter.setBrush(Qt::black);  // Задаем цвет для кораблей
         painter.drawRect(ship.rect);
     }
 
@@ -88,9 +88,40 @@ void GameWidget::checkCollisions() {
 }
 
 void GameWidget::spawnShips() {
-    int randomY = qrand() % (height() - 100) + 50; // Случайное Y для нового корабля
-    ships.append(Ship(width(), randomY, 50, 20, 2 + level, 3)); // Добавляем новый корабль с увеличенной скоростью на более высоких уровнях
+    int randomY = qrand() % (height() - 100) + 50; // Random Y position for the new ship
+
+    // Probability distribution based on the current level
+    int randomType = qrand() % 100;
+    int speed;
+    int scoreValue;
+    int width;
+    int height;
+
+    if (randomType < 60 - level * 10) {  // More likely to spawn fishing ships on lower levels
+        // Fishing Ship: slow, worth 1 point, large size
+        speed = 1 + level;  // Slowest speed
+        scoreValue = 1;
+        width = 80;  // Wider
+        height = 30;  // Taller
+    } else if (randomType < 90 - level * 5) {  // Merchant ship has medium probability
+        // Merchant Ship: medium speed, worth 2 points, medium size
+        speed = 2 + level;  // Medium speed
+        scoreValue = 2;
+        width = 60;  // Medium width
+        height = 25;  // Medium height
+    } else {
+        // Military Ship: fast, worth 3 points, small size
+        speed = 3 + level;  // Fastest speed
+        scoreValue = 3;
+        width = 50;  // Narrower
+        height = 20;  // Shorter
+    }
+
+    // Use 'this->width()' to get the widget's width
+    ships.append(Ship(this->width(), randomY, width, height, speed, scoreValue));
 }
+
+
 
 void GameWidget::checkLevel() {
     int previousLevel = level;  // Store the current level before checking

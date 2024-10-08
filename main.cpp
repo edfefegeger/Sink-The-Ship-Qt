@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 
     // Создаем виджет игры
     GameWidget game;
-    game.resize(400, 475);  // Задаем размер окна игры
+    game.resize(400, 470);  // Задаем размер окна игры
     game.show();
 
     return app.exec();  // Запускаем главный цикл приложения
