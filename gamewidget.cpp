@@ -55,13 +55,24 @@ void GameWidget::paintEvent(QPaintEvent *) {
         QRect resultRect(width() / 2 - 150, height() / 2 - 150, 300, 260);
         painter.drawRect(resultRect);
 
-        // Отрисовываем текст результатов
+        // Отрисовываем текст "Game Over" с увеличенным шрифтом
         painter.setPen(Qt::black);
-        painter.setFont(QFont("Arial", 16));
-        painter.drawText(resultRect, Qt::AlignCenter, "Game Over!\nScore: " + QString::number(score) +
-                         "\nShips sunk: " + QString::number(score / 3) + "\nLevel reached: " + QString::number(level));
+        QFont gameOverFont("Arial", 24, QFont::Bold); // Увеличиваем размер шрифта
+        painter.setFont(gameOverFont);
 
-        restartButton->setGeometry(width() / 2 - 75, height() / 2 + 50, 150, 45);
+        // Отрисовываем "Game Over" вверху блока
+        painter.drawText(resultRect.adjusted(0, 10, 0, 0), Qt::AlignTop | Qt::AlignHCenter, "Game Over!");
+
+        // Отрисовываем остальной текст результатов с меньшим шрифтом
+        QFont resultFont("Arial", 16);  // Устанавливаем размер шрифта 16 для остального текста
+        painter.setFont(resultFont);
+
+        // Отрисовываем остальной текст, сдвинутый ниже
+        painter.drawText(resultRect.adjusted(0, 70, 0, 0), Qt::AlignTop | Qt::AlignHCenter,
+                         "Score: " + QString::number(score) + "\nShips sunk: " + QString::number(score / 3) +
+                         "\nLevel reached: " + QString::number(level));
+
+        restartButton->setGeometry(width() / 2 - 75, height() / 2 + 30, 150, 55);
         restartButton->show();
 
         // Стилизуем кнопку
