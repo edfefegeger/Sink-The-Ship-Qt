@@ -4,6 +4,7 @@
 GameWidget::GameWidget(QWidget *parent)
     : QWidget(parent), score(0), torpedoCount(10), level(1), submarine(width() / 2 - 25, height() - 50, 50, 20) {
     timer = new QTimer(this);
+    setFocusPolicy(Qt::StrongFocus);  // Позволяем виджету получать фокус
     connect(timer, &QTimer::timeout, this, &GameWidget::updateGame);
     timer->start(30);
     spawnShips();
@@ -48,7 +49,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
         // Рисуем белый блок для вывода результатов
         painter.setBrush(Qt::white);
         painter.setPen(Qt::NoPen);
-        QRect resultRect(width() / 2 - 150, height() / 2 - 150, 300, 300);
+        QRect resultRect(width() / 2 - 150, height() / 2 - 150, 300, 260);
         painter.drawRect(resultRect);
 
         // Отрисовываем текст результатов
@@ -58,65 +59,74 @@ void GameWidget::paintEvent(QPaintEvent *) {
                          "\nShips sunk: " + QString::number(score / 3) + "\nLevel reached: " + QString::number(level));
 
         // Центрируем кнопку внутри белого блока
-        int buttonWidth = 120;
+        int buttonWidth = 100;
         int buttonHeight = 40;
         int buttonX = resultRect.center().x() - buttonWidth / 2;
         int buttonY = resultRect.bottom() - 60;  // Располагаем кнопку чуть ниже текста
 
-        restartButton->setGeometry(buttonX, buttonY, buttonWidth, buttonHeight);
+        restartButton->setGeometry(width() / 2 - 75, height() / 2 + 50, 150, 45);
         restartButton->show();
 
         // Стилизуем кнопку
         restartButton->setStyleSheet(
             "QPushButton {"
-            "background-color: black;"    // Зеленый фон
-            "color: white;"                 // Белый текст
-            "border: none;"                 // Без рамки
-            "border-radius: 10px;"          // Скругленные углы
-            "font-size: 13px;"              // Размер шрифта
-            "padding: 10px 20px;"           // Внутренние отступы
+            "background-color: black;"    // Черный фон
+            "color: white;"                // Белый текст
+            "border: none;"                // Без рамки
+            "border-radius: 10px;"         // Скругленные углы
+            "font-size: 16px;"             // Размер шрифта
+            "font-weight: bold;"           // Жирный шрифт
+            "padding: 10px 20px;"          // Внутренние отступы
             "}"
             "QPushButton:hover {"
             "background-color: #45a049;"    // Более темный зеленый при наведении
             "}"
         );
+
     }
 }
 
 void GameWidget::restartGame() {
-    // Reset score, level, and torpedo count
+    // Сброс счета, уровня и количества торпед
     score = 0;
     level = 1;
     torpedoCount = 10;
 
-    // Clear existing ships and torpedoes
+    // Очистка существующих кораблей и торпед
     ships.clear();
     torpedoes.clear();
 
-    // Spawn new ships for the reset game
+    // Инициализация подводной лодки в начальной позиции
+    submarine = Submarine(width() / 2 - 25, height() - 50, 50, 20); // Восстановите позицию подводной лодки
+
+    // Спавн новых кораблей для перезапущенной игры
     spawnShips();
 
-    // Hide the restart button and start the timer again
+    // Скрываем кнопку перезапуска и снова запускаем таймер
     restartButton->hide();
     timer->start(30);
 
-    // Update the game display
+    // Обновляем отображение игры
     update();
 }
+
 
 void GameWidget::keyPressEvent(QKeyEvent *event) {
     if (event->key() == Qt::Key_Space && torpedoCount > 0) {
         // Запускаем торпеду из центра подводной лодки
         torpedoes.append(Torpedo(submarine.rect.center().x() - 2, submarine.rect.top() - 10, 5, 10, 5));
         torpedoCount--;
+        update();  // Обновляем отображение после выстрела
     }
 
     // Управляем подводной лодкой с помощью стрелок
     if (event->key() == Qt::Key_Left) {
         submarine.moveLeft();
+        update();  // Обновляем отображение после движения
     }
     if (event->key() == Qt::Key_Right) {
         submarine.moveRight(this->width());  // Передаем ширину окна
+        update();  // Обновляем отображение после движения
     }
 }
 
