@@ -38,11 +38,14 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.setBrush(Qt::red);
         painter.drawRect(torpedo.rect);
     }
+    QFont font("Arial", 14, QFont::Bold);  // Устанавливаем размер шрифта 12 и жирный стиль
+    painter.setFont(font);
 
-    // Отображаем счет, оставшиеся торпеды и уровень
-    painter.drawText(10, 10, "Score: " + QString::number(score));
-    painter.drawText(10, 30, "Torpedoes left: " + QString::number(torpedoCount));
-    painter.drawText(10, 50, "Level: " + QString::number(level));
+    // Отображаем счет, оставшиеся торпеды и уровень с меньшими отступами
+    painter.drawText(10, 20, "Score: " + QString::number(score));
+    painter.drawText(10, 40, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
+    painter.drawText(10, 60, "Level: " + QString::number(level));  // Изменено на 40
+
 
     // Если игра завершена, показываем белый блок с результатами и кнопку
     if (torpedoCount == 0) {
@@ -57,12 +60,6 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.setFont(QFont("Arial", 16));
         painter.drawText(resultRect, Qt::AlignCenter, "Game Over!\nScore: " + QString::number(score) +
                          "\nShips sunk: " + QString::number(score / 3) + "\nLevel reached: " + QString::number(level));
-
-        // Центрируем кнопку внутри белого блока
-        int buttonWidth = 100;
-        int buttonHeight = 40;
-        int buttonX = resultRect.center().x() - buttonWidth / 2;
-        int buttonY = resultRect.bottom() - 60;  // Располагаем кнопку чуть ниже текста
 
         restartButton->setGeometry(width() / 2 - 75, height() / 2 + 50, 150, 45);
         restartButton->show();
