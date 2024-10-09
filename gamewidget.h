@@ -69,12 +69,12 @@ private slots:
     void checkCollisions();
     void spawnShips();
     void restartGame();
-    void showTopResults();  // Новый слот для отображения топ-результатов
+    void showTopResults();  // слот для отображения топ-результатов
 
 private:
     void checkLevel();
-    void saveResult();  // Новый метод для сохранения результата
-    void loadTopResults();  // Новый метод для загрузки топ-результатов
+    void saveResult();  // метод для сохранения результата
+    void loadTopResults();  // метод для загрузки топ-результатов
 
     QList<Ship> ships;
     QList<Torpedo> torpedoes;

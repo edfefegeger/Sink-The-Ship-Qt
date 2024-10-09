@@ -110,7 +110,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
             "padding: 10px 20px;"          // Внутренние отступы
             "}"
             "QPushButton:hover {"
-            "background-color: #45a049;"    // Более темный зеленый при наведении
+            "background-color: #45a049;"
             "}"
         );
 
@@ -128,7 +128,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
             "padding: 10px 20px;"          // Внутренние отступы
             "}"
             "QPushButton:hover {"
-            "background-color: #45a049;"    // Более темный зеленый при наведении
+            "background-color: #45a049;"
             "}"
         );
     }
@@ -185,18 +185,26 @@ void GameWidget::keyPressEvent(QKeyEvent *event) {
 }
 
 void GameWidget::updateGame() {
+    // Проверяем, остались ли торпеды
     if (torpedoCount < 0) {
         update();  // Обновляем экран, чтобы показать результат
         return;  // Останавливаем игру, если торпед больше нет
     }
 
+    // Двигаем все корабли на экране
     for (Ship &ship : ships) {
-        ship.move();
+        ship.move();  // Вызываем метод перемещения для каждого корабля
     }
+
+    // Двигаем все торпеды на экране
     for (Torpedo &torpedo : torpedoes) {
-        torpedo.move();
+        torpedo.move();  // Вызываем метод перемещения для каждой торпеды
     }
-    checkCollisions();
+
+    // Проверяем столкновения между торпедами и кораблями
+    checkCollisions();  // Вызываем метод проверки столкновений
+
+    // Обновляем экран для отображения новых позиций объектов
     update();
 }
 
@@ -230,7 +238,7 @@ void GameWidget::spawnShips() {
     int randomY = randomGen->bounded(height() - 100) + 50; // Случайное Y для нового корабля
 
     // Вероятность появления типа корабля в зависимости от уровня
-    int randomType = qrand() % 100;
+    int randomType = QRandomGenerator::global()->bounded(100);
     int speed;
     int scoreValue;
     int width;
@@ -284,74 +292,81 @@ void GameWidget::checkLevel() {
         torpedoCount = 10;
     }
 }
-
 void GameWidget::saveResult() {
     QString playerName = "Player";  // Можно добавить ввод имени игрока
-    bool isBetterScore = false;
+    bool scoreInserted = false;     // Флаг, что мы вставили новый результат
 
-    // Загружаем текущие результаты
     QFile file("highscores.txt");
-    QList<QPair<int, QString>> loadedResults;
+    QStringList fileLines;          // Для хранения всех строк файла
 
+    // Чтение существующих результатов из файла
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&file);
         while (!in.atEnd()) {
-            QString line = in.readLine();
-            QStringList parts = line.split(":");
-            if (parts.size() == 2) {
-                QString name = parts[0];
-                int score = parts[1].toInt();
-                loadedResults.append(qMakePair(score, name));
-            }
+            fileLines.append(in.readLine());
         }
         file.close();
     }
 
-    // Проверяем, если текущий результат лучше существующих
-    for (int i = 0; i < loadedResults.size(); ++i) {
-        if (score > loadedResults[i].first) {
-            loadedResults[i] = qMakePair(score, playerName);  // Заменяем только одну строку
-            isBetterScore = true;
-            break;
-        }
-    }
-
-    // Если результат не оказался лучше, добавляем его в конец списка
-    if (!isBetterScore && loadedResults.size() < 10) {
-        loadedResults.append(qMakePair(score, playerName));
-    }
-
-    // Сортировка по убыванию счета
-    std::sort(loadedResults.begin(), loadedResults.end(), [](const QPair<int, QString> &a, const QPair<int, QString> &b) {
-        return a.first > b.first;
-    });
-
-    // Сохраняем результаты обратно в файл, только если что-то изменилось
     QFile outFile("highscores.txt");
     if (outFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&outFile);
-        for (const auto &result : loadedResults) {
-            out << result.second << ":" << result.first << "\n";
+        int numLinesWritten = 0;
+
+        // Проходим по строкам файла и проверяем, нужно ли заменить результат
+        for (int i = 0; i < fileLines.size(); ++i) {
+            QStringList parts = fileLines[i].split(":");
+            if (parts.size() == 2) {
+                QString name = parts[0];
+                int existingScore = parts[1].toInt();
+
+                // Если мы еще не вставили новый результат и текущий результат лучше
+                if (!scoreInserted && score > existingScore) {
+                    out << playerName << ":" << score << "\n";  // Вставляем новый результат
+                    scoreInserted = true;  // Флаг, что результат вставлен
+                    numLinesWritten++;
+                }
+
+                // Записываем текущую строку
+                if (numLinesWritten < 10) {  // Пишем не более 10 строк
+                    out << name << ":" << existingScore << "\n";
+                    numLinesWritten++;
+                }
+            }
         }
-        outFile.close();  // Закрываем файл сразу после записи
+
+        // Если новый результат не был вставлен, но у нас есть место для добавления
+        if (!scoreInserted && numLinesWritten < 10) {
+            out << playerName << ":" << score << "\n";  // Добавляем результат в конец
+        }
+
+        outFile.close();  // Закрываем файл
     }
 }
 
 void GameWidget::loadTopResults() {
-    QFile file("highscores.txt");
+    QFile file("highscores.txt");  // Создаем объект файла для чтения результатов
     topResults.clear();  // Очищаем предыдущие результаты перед загрузкой
+
+    // Попытка открыть файл в режиме только для чтения и текстовом формате
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
+        QTextStream in(&file);  // Создаем текстовый поток для чтения данных из файла
+
+        // Читаем файл построчно, пока не достигнем конца
         while (!in.atEnd()) {
-            QString line = in.readLine();
-            QStringList parts = line.split(":");
+            QString line = in.readLine();  // Читаем одну строку из файла
+            QStringList parts = line.split(":");  // Разделяем строку по разделителю ":"
+
+            // Проверяем, содержит ли строка два элемента (имя и счет)
             if (parts.size() == 2) {
-                QString name = parts[0];
-                int score = parts[1].toInt();
+                QString name = parts[0];  // Имя игрока
+                int score = parts[1].toInt();  // Счет, преобразованный в целое число
+
+                // Добавляем пару (счет, имя) в список верхних результатов
                 topResults.append(qMakePair(score, name));
             }
         }
-        file.close();
+        file.close();  // Закрываем файл после завершения чтения
     }
 }
 
@@ -368,6 +383,5 @@ void GameWidget::showTopResults() {
 
     QMessageBox::information(this, "Top 10", resultText);  // Показываем сообщение с результатами
 }
-
 
 
