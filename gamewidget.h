@@ -83,6 +83,7 @@ private:
     int score;
     int torpedoCount;
     int level;
+    int ships_destroyed;
     QPushButton *restartButton;
     QPushButton *topResultsButton;  // Кнопка для показа топ-результатов
 

@@ -59,14 +59,15 @@ void GameWidget::paintEvent(QPaintEvent *) {
     QFont font("Arial", 14, QFont::Bold);  // Устанавливаем размер шрифта 12 и жирный стиль
     painter.setFont(font);
     painter.drawText(10, 25, "Score: " + QString::number(score));
+    painter.drawText(10, 45, "Ships destroyed: " + QString::number(ships_destroyed));
 
     if (torpedoCount == -1) {
-        painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount + 1));  // Изменено на 25
+        painter.drawText(10, 65, "Torpedoes left: " + QString::number(torpedoCount + 1));  // Изменено на 25
     } else {
-        painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
+        painter.drawText(10, 65, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
     }
 
-    painter.drawText(10, 65, "Level: " + QString::number(level));  // Изменено на 40
+    painter.drawText(10, 85, "Level: " + QString::number(level));  // Изменено на 40
 
     // Если игра завершена, показываем белый блок с результатами и кнопку
     if (torpedoCount == -1) {
@@ -91,7 +92,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
         // Отрисовываем остальной текст, сдвинутый ниже
         painter.drawText(resultRect.adjusted(0, 70, 0, 0), Qt::AlignTop | Qt::AlignHCenter,
-                         "Score: " + QString::number(score) + "\nShips sunk: " + QString::number(score / 3) +
+                         "Score: " + QString::number(score) + "\nShips destroyed: " + QString::number(ships_destroyed) +
                          "\nLevel reached: " + QString::number(level));
 
         restartButton->setGeometry(width() / 2 - 75, height() / 2 + 30, 150, 55);
@@ -137,6 +138,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
 void GameWidget::restartGame() {
     // Сброс счета, уровня и количества торпед
     score = 0;
+    ships_destroyed = 0;
     level = 1;
     torpedoCount = 10;
 
@@ -203,6 +205,7 @@ void GameWidget::checkCollisions() {
         for (int j = 0; j < ships.size(); ++j) {
             if (torpedoes[i].rect.intersects(ships[j].rect)) {
                 score += ships[j].scoreValue;
+                ships_destroyed += 1;
                 ships.removeAt(j);
                 torpedoes.removeAt(i);
                 spawnShips(); // Спавним новый корабль при уничтожении старого
@@ -261,18 +264,18 @@ void GameWidget::checkLevel() {
     int previousLevel = level;  // Запоминаем текущий уровень
 
     // Обновляем уровень в зависимости от количества очков
-    if (score >= 40) {
+    if (ships_destroyed >= 40) {
         level = 5;
     }
-    else if (score >= 30) {
+    else if (ships_destroyed >= 30) {
         level = 4;
         }
-    else if (score >= 20) {
+    else if (ships_destroyed >= 20) {
         level = 3;
         }
-     else if (score >= 10) {
+     else if (ships_destroyed >= 10) {
         level = 2;
-    } else if (score >= 0) {
+    } else if (ships_destroyed >= 0) {
         level = 1;
     }
 
