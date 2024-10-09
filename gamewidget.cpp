@@ -38,6 +38,15 @@ void GameWidget::paintEvent(QPaintEvent *) {
     for (const Ship &ship : ships) {
         painter.setBrush(Qt::gray);
         painter.drawRect(ship.rect);
+
+        // Рисуем цифру в центре корабля
+        QFont font("Arial", 12, QFont::Bold);  // Устанавливаем шрифт для цифры
+        painter.setFont(font);
+        painter.setPen(Qt::black);  // Цвет текста
+
+        // Рассчитываем позицию для текста
+        QPoint textPosition(ship.rect.center().x() - 3, ship.rect.center().y() + 7);  // Сдвигаем текст вниз на 5 пикселей и влево на 5 пикселей
+        painter.drawText(textPosition, QString::number(ship.scoreValue));  // Рисуем цифру
     }
 
     // Рисуем торпеды
@@ -45,20 +54,19 @@ void GameWidget::paintEvent(QPaintEvent *) {
         painter.setBrush(Qt::red);
         painter.drawRect(torpedo.rect);
     }
-    QFont font("Arial", 14, QFont::Bold);  // Устанавливаем размер шрифта 12 и жирный стиль
-    painter.setFont(font);
 
     // Отображаем счет, оставшиеся торпеды и уровень с меньшими отступами
+    QFont font("Arial", 14, QFont::Bold);  // Устанавливаем размер шрифта 12 и жирный стиль
+    painter.setFont(font);
     painter.drawText(10, 25, "Score: " + QString::number(score));
-    if (torpedoCount == -1)
-       {
-    painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount + 1));  // Изменено на 25
-    }
-    else{
+
+    if (torpedoCount == -1) {
+        painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount + 1));  // Изменено на 25
+    } else {
         painter.drawText(10, 45, "Torpedoes left: " + QString::number(torpedoCount));  // Изменено на 25
     }
-    painter.drawText(10, 65, "Level: " + QString::number(level));  // Изменено на 40
 
+    painter.drawText(10, 65, "Level: " + QString::number(level));  // Изменено на 40
 
     // Если игра завершена, показываем белый блок с результатами и кнопку
     if (torpedoCount == -1) {
@@ -103,31 +111,28 @@ void GameWidget::paintEvent(QPaintEvent *) {
             "QPushButton:hover {"
             "background-color: #45a049;"    // Более темный зеленый при наведении
             "}"
-
-
         );
-        topResultsButton->setGeometry(width() / 2 - 75, height() / 2 + 90, 150, 55);
 
+        topResultsButton->setGeometry(width() / 2 - 75, height() / 2 + 90, 150, 55);
         topResultsButton->show();
 
-                topResultsButton->setStyleSheet(
-                    "QPushButton {"
-                    "background-color: black;"    // Черный фон
-                    "color: white;"                // Белый текст
-                    "border: none;"                // Без рамки
-                    "border-radius: 10px;"         // Скругленные углы
-                    "font-size: 16px;"             // Размер шрифта
-                    "font-weight: bold;"           // Жирный шрифт
-                    "padding: 10px 20px;"          // Внутренние отступы
-                    "}"
-                    "QPushButton:hover {"
-                    "background-color: #45a049;"    // Более темный зеленый при наведении
-                    "}"
-                            );
+        topResultsButton->setStyleSheet(
+            "QPushButton {"
+            "background-color: black;"    // Черный фон
+            "color: white;"                // Белый текст
+            "border: none;"                // Без рамки
+            "border-radius: 10px;"         // Скругленные углы
+            "font-size: 16px;"             // Размер шрифта
+            "font-weight: bold;"           // Жирный шрифт
+            "padding: 10px 20px;"          // Внутренние отступы
+            "}"
+            "QPushButton:hover {"
+            "background-color: #45a049;"    // Более темный зеленый при наведении
+            "}"
+        );
     }
-
-
 }
+
 
 void GameWidget::restartGame() {
     // Сброс счета, уровня и количества торпед
