@@ -287,30 +287,59 @@ void GameWidget::checkLevel() {
 
 void GameWidget::saveResult() {
     QString playerName = "Player";  // Можно добавить ввод имени игрока
-    topResults.append(qMakePair(score, playerName));
+    bool isBetterScore = false;
+
+    // Загружаем текущие результаты
+    QFile file("highscores.txt");
+    QList<QPair<int, QString>> loadedResults;
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            QStringList parts = line.split(":");
+            if (parts.size() == 2) {
+                QString name = parts[0];
+                int score = parts[1].toInt();
+                loadedResults.append(qMakePair(score, name));
+            }
+        }
+        file.close();
+    }
+
+    // Проверяем, если текущий результат лучше существующих
+    for (int i = 0; i < loadedResults.size(); ++i) {
+        if (score > loadedResults[i].first) {
+            loadedResults[i] = qMakePair(score, playerName);  // Заменяем только одну строку
+            isBetterScore = true;
+            break;
+        }
+    }
+
+    // Если результат не оказался лучше, добавляем его в конец списка
+    if (!isBetterScore && loadedResults.size() < 10) {
+        loadedResults.append(qMakePair(score, playerName));
+    }
 
     // Сортировка по убыванию счета
-    std::sort(topResults.begin(), topResults.end(), [](const QPair<int, QString> &a, const QPair<int, QString> &b) {
+    std::sort(loadedResults.begin(), loadedResults.end(), [](const QPair<int, QString> &a, const QPair<int, QString> &b) {
         return a.first > b.first;
     });
 
-    // Сохраняем только топ-10
-    if (topResults.size() > 10) {
-        topResults.resize(10);
-    }
-
-    QFile file("top_results.txt");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        for (const auto &result : topResults) {
+    // Сохраняем результаты обратно в файл, только если что-то изменилось
+    QFile outFile("highscores.txt");
+    if (outFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&outFile);
+        for (const auto &result : loadedResults) {
             out << result.second << ":" << result.first << "\n";
         }
+        outFile.close();  // Закрываем файл сразу после записи
     }
-    file.close();
 }
 
 void GameWidget::loadTopResults() {
     QFile file("highscores.txt");
+    topResults.clear();  // Очищаем предыдущие результаты перед загрузкой
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&file);
         while (!in.atEnd()) {
@@ -322,18 +351,23 @@ void GameWidget::loadTopResults() {
                 topResults.append(qMakePair(score, name));
             }
         }
+        file.close();
     }
-    file.close();
 }
+
 void GameWidget::showTopResults() {
     loadTopResults();  // Загружаем результаты
 
     QString resultText = "Top 10 Results:\n\n";
-    for (int i = 0; i < topResults.size(); ++i) {
+
+    // Выводим не более 10 записей
+    int limit = qMin(10, topResults.size());
+    for (int i = 0; i < limit; ++i) {
         resultText += QString("%1. %2 - %3\n").arg(i + 1).arg(topResults[i].second).arg(topResults[i].first);
     }
 
     QMessageBox::information(this, "Top 10", resultText);  // Показываем сообщение с результатами
 }
+
 
 
