@@ -3,6 +3,7 @@
 #include <QRandomGenerator>
 #include <QTextStream>
 #include <QMessageBox>
+#include "logger.h"
 
 GameWidget::GameWidget(QWidget *parent)
     : QWidget(parent), score(0), torpedoCount(10), level(1), submarine(width() / 2 - 25, height() - 50, 50, 20) {
@@ -11,6 +12,8 @@ GameWidget::GameWidget(QWidget *parent)
     connect(timer, &QTimer::timeout, this, &GameWidget::updateGame);
     timer->start(30);
     spawnShips();
+
+    logger logger1;
 
     // Создаем кнопку "Играть снова", но она скрыта до конца игры
     restartButton = new QPushButton("Try again!", this);
@@ -21,11 +24,14 @@ GameWidget::GameWidget(QWidget *parent)
     topResultsButton->hide();
     // topResultsButton->setGeometry(10, 100, 150, 30);
     connect(topResultsButton, &QPushButton::clicked, this, &GameWidget::showTopResults);
+
+    logger1.logToFile("Старт", INFO);
+
 }
 
 void GameWidget::paintEvent(QPaintEvent *) {
     QPainter painter(this);
-
+    logger logger1;
     // Рисуем подводную лодку в виде треугольника
     painter.setBrush(Qt::gray);
     QPolygon submarineShape;
@@ -41,6 +47,7 @@ void GameWidget::paintEvent(QPaintEvent *) {
 
         // Рисуем цифру в центре корабля
         QFont font("Arial", 12, QFont::Bold);  // Устанавливаем шрифт для цифры
+        logger1.logToFile("Старт", INFO);
         painter.setFont(font);
         painter.setPen(Qt::black);  // Цвет текста
 

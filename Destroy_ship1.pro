@@ -10,11 +10,13 @@ CONFIG += c++17
 
 SOURCES += \
     gamewidget.cpp \
+    logger.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     gamewidget.h \
+    logger.h \
     mainwindow.h
 
 FORMS += \
